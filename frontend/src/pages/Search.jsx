@@ -1,25 +1,59 @@
-import React, { useState } from 'react';
-import { Search as SearchIcon, Play, Heart, Clock, Music2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Search as SearchIcon, Play, Pause, Heart, Clock, Music2 } from 'lucide-react';
 import { useAudio } from '../context/AudioContext';
 import { GENRE_PRESETS } from '../data/initialSongs';
+import { api } from '../services/api';
 
 export default function Search({ searchQuery, setSearchQuery }) {
   const { songs, playTrack, currentTrack, isPlaying, togglePlayPause, likedSongIds, toggleLikeSong } = useAudio();
   const [selectedGenre, setSelectedGenre] = useState(null);
+  const [searchResults, setSearchResults] = useState(null);
+  const [isSearching, setIsSearching] = useState(false);
 
-  const filteredSongs = songs.filter(song => {
-    const matchesSearch = !searchQuery || 
-      song.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      song.artist.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      song.genre.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      song.mood.toLowerCase().includes(searchQuery.toLowerCase());
+  // Query real backend for search and genre filters
+  useEffect(() => {
+    let isCurrent = true;
 
-    const matchesGenre = !selectedGenre || song.genre.toLowerCase() === selectedGenre.toLowerCase();
+    const performSearch = async () => {
+      if (!searchQuery && !selectedGenre) {
+        setSearchResults(null);
+        return;
+      }
 
-    return matchesSearch && matchesGenre;
-  });
+      setIsSearching(true);
+      try {
+        let results = [];
+        if (selectedGenre && !searchQuery) {
+          results = await api.getSongsByGenre(selectedGenre);
+        } else if (searchQuery) {
+          results = await api.searchSongs(searchQuery);
+          if (selectedGenre) {
+            results = results.filter(s => s.genre?.toLowerCase() === selectedGenre.toLowerCase());
+          }
+        }
+
+        if (isCurrent) {
+          setSearchResults(results);
+        }
+      } catch (err) {
+        console.warn('Backend search error, falling back to local dataset:', err);
+      } finally {
+        if (isCurrent) setIsSearching(false);
+      }
+    };
+
+    const timer = setTimeout(performSearch, 200);
+    return () => {
+      isCurrent = false;
+      clearTimeout(timer);
+    };
+  }, [searchQuery, selectedGenre]);
+
+  // Use searchResults if an active query/filter exists; otherwise use full catalog
+  const displaySongs = (searchResults !== null) ? searchResults : songs;
 
   const formatTime = (secs) => {
+    if (!secs || isNaN(secs)) return '0:00';
     const m = Math.floor(secs / 60);
     const s = Math.floor(secs % 60);
     return `${m}:${s < 10 ? '0' : ''}${s}`;
@@ -85,10 +119,14 @@ export default function Search({ searchQuery, setSearchQuery }) {
       {/* Results Table Section */}
       <section className="glass-panel" style={{ padding: '1.5rem' }}>
         <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1rem' }}>
-          Search Results ({filteredSongs.length} tracks found)
+          {searchQuery || selectedGenre ? `Search Results (${displaySongs.length} tracks found)` : `All Catalog Tracks (${displaySongs.length})`}
         </h2>
 
-        {filteredSongs.length === 0 ? (
+        {isSearching ? (
+          <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+            Searching TuneWave music catalog...
+          </div>
+        ) : displaySongs.length === 0 ? (
           <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
             No tracks found matching your query or genre filter.
           </div>
@@ -105,7 +143,7 @@ export default function Search({ searchQuery, setSearchQuery }) {
               </tr>
             </thead>
             <tbody>
-              {filteredSongs.map((song, index) => {
+              {displaySongs.map((song, index) => {
                 const isCurrent = currentTrack?.id === song.id;
                 const isLiked = likedSongIds.has(song.id);
                 return (
@@ -131,7 +169,7 @@ export default function Search({ searchQuery, setSearchQuery }) {
                     <td>
                       <div style={{ display: 'flex', gap: '0.4rem' }}>
                         <span className="badge badge-primary">{song.genre}</span>
-                        <span className="badge badge-cyan">{song.mood}</span>
+                        {song.mood && <span className="badge badge-cyan">{song.mood}</span>}
                       </div>
                     </td>
                     <td style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>
@@ -145,7 +183,7 @@ export default function Search({ searchQuery, setSearchQuery }) {
                         <button
                           onClick={() => {
                             if (isCurrent) togglePlayPause();
-                            else playTrack(song, filteredSongs);
+                            else playTrack(song, displaySongs);
                           }}
                           className="btn-icon"
                           style={{ color: isCurrent ? 'var(--primary)' : 'var(--text-main)' }}
