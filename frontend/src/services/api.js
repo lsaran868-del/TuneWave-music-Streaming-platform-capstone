@@ -14,7 +14,7 @@ export const getAuthHeaders = () => {
 };
 
 export const api = {
-  // Authentication - Real backend endpoints without fake/demo fallbacks
+  // Authentication
   login: async (email, password) => {
     try {
       const res = await fetch(`${BASE_URL}/auth/login`, {
@@ -87,12 +87,13 @@ export const api = {
     }
   },
 
-  // Songs Catalog
+  // Songs Catalog & Search API
   getSongs: async () => {
     try {
       const res = await fetch(`${BASE_URL}/songs`, { headers: getAuthHeaders() });
       if (!res.ok) throw new Error();
-      return await res.json();
+      const data = await res.json();
+      return Array.isArray(data) && data.length > 0 ? data : INITIAL_SONGS;
     } catch {
       return INITIAL_SONGS;
     }
@@ -108,6 +109,68 @@ export const api = {
     }
   },
 
+  searchSongs: async (query) => {
+    try {
+      const q = encodeURIComponent(query || '');
+      const res = await fetch(`${BASE_URL}/songs/search?q=${q}`, { headers: getAuthHeaders() });
+      if (!res.ok) throw new Error();
+      return await res.json();
+    } catch {
+      // Offline fallback: filter INITIAL_SONGS
+      const lower = (query || '').toLowerCase();
+      return INITIAL_SONGS.filter(s =>
+        s.title.toLowerCase().includes(lower) ||
+        s.artist.toLowerCase().includes(lower) ||
+        (s.album && s.album.toLowerCase().includes(lower)) ||
+        s.genre.toLowerCase().includes(lower)
+      );
+    }
+  },
+
+  getSongsByGenre: async (genre) => {
+    try {
+      const g = encodeURIComponent(genre || '');
+      const res = await fetch(`${BASE_URL}/songs/genre/${g}`, { headers: getAuthHeaders() });
+      if (!res.ok) throw new Error();
+      return await res.json();
+    } catch {
+      return INITIAL_SONGS.filter(s => s.genre.toLowerCase() === (genre || '').toLowerCase());
+    }
+  },
+
+  getTrendingSongs: async () => {
+    try {
+      const res = await fetch(`${BASE_URL}/songs/trending`, { headers: getAuthHeaders() });
+      if (!res.ok) throw new Error();
+      return await res.json();
+    } catch {
+      return [...INITIAL_SONGS].sort((a, b) => (b.streamCount || 0) - (a.streamCount || 0)).slice(0, 5);
+    }
+  },
+
+  getRecentlyAddedSongs: async () => {
+    try {
+      const res = await fetch(`${BASE_URL}/songs/recently-added`, { headers: getAuthHeaders() });
+      if (!res.ok) throw new Error();
+      return await res.json();
+    } catch {
+      return INITIAL_SONGS.slice(0, 6);
+    }
+  },
+
+  incrementStream: async (songId) => {
+    try {
+      const res = await fetch(`${BASE_URL}/songs/${songId}/stream`, {
+        method: 'POST',
+        headers: getAuthHeaders()
+      });
+      if (res.ok) return await res.json();
+    } catch {
+      // non-critical
+    }
+    return null;
+  },
+
   logPlayEvent: async (songId, durationSeconds) => {
     try {
       await fetch(`${BASE_URL}/history`, {
@@ -116,7 +179,7 @@ export const api = {
         body: JSON.stringify({ songId, playDurationSeconds: durationSeconds })
       });
     } catch (err) {
-      // Logged locally in AudioContext if backend unauthenticated or offline
+      // Handled locally
     }
   },
 
