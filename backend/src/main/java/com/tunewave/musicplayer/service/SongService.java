@@ -48,14 +48,24 @@ public class SongService {
 
     @Transactional(readOnly = true)
     public List<SongDto> getSongsByGenre(String genre) {
-        return songRepository.findByGenreIgnoreCase(genre).stream()
+        if (genre == null || genre.trim().isEmpty()) {
+            return getAllSongs();
+        }
+        return songRepository.findByGenreIgnoreCase(genre.trim()).stream()
                 .map(SongDto::fromEntity)
                 .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
     public List<SongDto> getTrendingSongs() {
-        return songRepository.findTop10ByOrderByStreamCountDesc().stream()
+        return songRepository.findTop20ByOrderByStreamCountDesc().stream()
+                .map(SongDto::fromEntity)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<SongDto> getRecentlyAddedSongs() {
+        return songRepository.findTop20ByOrderByCreatedAtDesc().stream()
                 .map(SongDto::fromEntity)
                 .collect(Collectors.toList());
     }
@@ -64,7 +74,7 @@ public class SongService {
     @CacheEvict(value = "songs", key = "#id")
     public SongDto incrementStreamCount(String id) {
         Song song = findSongEntityById(id);
-        song.setStreamCount(song.getStreamCount() + 1);
+        song.setStreamCount((song.getStreamCount() != null ? song.getStreamCount() : 0L) + 1);
         Song saved = songRepository.save(song);
         return SongDto.fromEntity(saved);
     }
