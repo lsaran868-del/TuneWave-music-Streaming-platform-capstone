@@ -16,15 +16,17 @@ public class SongDto {
     private String coverUrl;
     private String genre;
     private String mood;
-    private AudioFeatures features;
-    private Long streamCount;
+    private String releaseDate;
+    private Boolean isExplicit = false;
+    private AudioFeatures audioFeatures;
+    private Long streamCount = 0L;
     private LocalDateTime createdAt;
 
     public SongDto() {}
 
     public SongDto(String id, String title, String artist, String artistId, String album, String albumId,
                    Integer duration, String audioUrl, String coverUrl, String genre, String mood,
-                   AudioFeatures features, Long streamCount, LocalDateTime createdAt) {
+                   String releaseDate, Boolean isExplicit, AudioFeatures audioFeatures, Long streamCount, LocalDateTime createdAt) {
         this.id = id;
         this.title = title;
         this.artist = artist;
@@ -36,8 +38,10 @@ public class SongDto {
         this.coverUrl = coverUrl;
         this.genre = genre;
         this.mood = mood;
-        this.features = features;
-        this.streamCount = streamCount;
+        this.releaseDate = releaseDate;
+        this.isExplicit = isExplicit != null ? isExplicit : false;
+        this.audioFeatures = audioFeatures;
+        this.streamCount = streamCount != null ? streamCount : 0L;
         this.createdAt = createdAt;
     }
 
@@ -57,8 +61,10 @@ public class SongDto {
         private String coverUrl;
         private String genre;
         private String mood;
-        private AudioFeatures features;
-        private Long streamCount;
+        private String releaseDate;
+        private Boolean isExplicit = false;
+        private AudioFeatures audioFeatures;
+        private Long streamCount = 0L;
         private LocalDateTime createdAt;
 
         public Builder id(String id) { this.id = id; return this; }
@@ -72,12 +78,15 @@ public class SongDto {
         public Builder coverUrl(String coverUrl) { this.coverUrl = coverUrl; return this; }
         public Builder genre(String genre) { this.genre = genre; return this; }
         public Builder mood(String mood) { this.mood = mood; return this; }
-        public Builder features(AudioFeatures features) { this.features = features; return this; }
+        public Builder releaseDate(String releaseDate) { this.releaseDate = releaseDate; return this; }
+        public Builder isExplicit(Boolean isExplicit) { this.isExplicit = isExplicit; return this; }
+        public Builder features(AudioFeatures features) { this.audioFeatures = features; return this; }
+        public Builder audioFeatures(AudioFeatures audioFeatures) { this.audioFeatures = audioFeatures; return this; }
         public Builder streamCount(Long streamCount) { this.streamCount = streamCount; return this; }
         public Builder createdAt(LocalDateTime createdAt) { this.createdAt = createdAt; return this; }
 
         public SongDto build() {
-            return new SongDto(id, title, artist, artistId, album, albumId, duration, audioUrl, coverUrl, genre, mood, features, streamCount, createdAt);
+            return new SongDto(id, title, artist, artistId, album, albumId, duration, audioUrl, coverUrl, genre, mood, releaseDate, isExplicit, audioFeatures, streamCount, createdAt);
         }
     }
 
@@ -95,7 +104,9 @@ public class SongDto {
                 .coverUrl(song.getCoverUrl())
                 .genre(song.getGenre())
                 .mood(song.getMood())
-                .features(song.getFeatures())
+                .releaseDate(song.getReleaseDate())
+                .isExplicit(song.getIsExplicit())
+                .audioFeatures(song.getFeatures())
                 .streamCount(song.getStreamCount())
                 .createdAt(song.getCreatedAt())
                 .build();
@@ -134,8 +145,18 @@ public class SongDto {
     public String getMood() { return mood; }
     public void setMood(String mood) { this.mood = mood; }
 
-    public AudioFeatures getFeatures() { return features; }
-    public void setFeatures(AudioFeatures features) { this.features = features; }
+    public String getReleaseDate() { return releaseDate; }
+    public void setReleaseDate(String releaseDate) { this.releaseDate = releaseDate; }
+
+    public Boolean getIsExplicit() { return isExplicit; }
+    public void setIsExplicit(Boolean isExplicit) { this.isExplicit = isExplicit; }
+
+    public AudioFeatures getAudioFeatures() { return audioFeatures; }
+    public void setAudioFeatures(AudioFeatures audioFeatures) { this.audioFeatures = audioFeatures; }
+
+    // Compatibility getter/setter for features
+    public AudioFeatures getFeatures() { return audioFeatures; }
+    public void setFeatures(AudioFeatures features) { this.audioFeatures = features; }
 
     public Long getStreamCount() { return streamCount; }
     public void setStreamCount(Long streamCount) { this.streamCount = streamCount; }
