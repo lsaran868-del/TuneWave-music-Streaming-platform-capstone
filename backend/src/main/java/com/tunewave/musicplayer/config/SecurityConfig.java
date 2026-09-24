@@ -70,7 +70,7 @@ public class SecurityConfig {
                 // Public endpoints
                 .requestMatchers(HttpMethod.POST, "/api/auth/register", "/api/auth/login").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/health").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/songs/**").permitAll()
+                .requestMatchers("/api/songs/**").permitAll()
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers("/error").permitAll()
 
