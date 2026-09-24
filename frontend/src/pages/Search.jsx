@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Search as SearchIcon, Play, Pause, Heart, Clock, Music2 } from 'lucide-react';
+import { Search as SearchIcon, Play, Pause, Heart, Clock, Music2, ListPlus } from 'lucide-react';
 import { useAudio } from '../context/AudioContext';
 import { GENRE_PRESETS } from '../data/initialSongs';
 import { api } from '../services/api';
 
 export default function Search({ searchQuery, setSearchQuery }) {
-  const { songs, playTrack, currentTrack, isPlaying, togglePlayPause, likedSongIds, toggleLikeSong } = useAudio();
+  const { songs, playTrack, currentTrack, isPlaying, togglePlayPause, likedSongIds, toggleLikeSong, addToQueue } = useAudio();
   const [selectedGenre, setSelectedGenre] = useState(null);
   const [searchResults, setSearchResults] = useState(null);
   const [isSearching, setIsSearching] = useState(false);
@@ -189,6 +189,14 @@ export default function Search({ searchQuery, setSearchQuery }) {
                           style={{ color: isCurrent ? 'var(--primary)' : 'var(--text-main)' }}
                         >
                           {isCurrent && isPlaying ? <Pause size={18} fill="currentColor" /> : <Play size={18} fill="currentColor" />}
+                        </button>
+                        <button
+                          onClick={() => addToQueue(song)}
+                          className="btn-icon"
+                          title="Add to Queue"
+                          style={{ color: 'var(--text-muted)' }}
+                        >
+                          <ListPlus size={16} />
                         </button>
                         <button
                           onClick={() => toggleLikeSong(song.id)}
