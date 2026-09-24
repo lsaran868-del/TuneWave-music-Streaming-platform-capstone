@@ -71,13 +71,14 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/auth/register", "/api/auth/login").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/health").permitAll()
                 .requestMatchers("/api/songs/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/history").permitAll()
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers("/error").permitAll()
 
                 // Protected endpoints
                 .requestMatchers("/api/auth/me").authenticated()
                 .requestMatchers("/api/playlists/**").authenticated()
-                .requestMatchers("/api/history/**").authenticated()
+                .requestMatchers(HttpMethod.GET, "/api/history/**").authenticated()
                 .requestMatchers("/api/favorites/**").authenticated()
                 .requestMatchers("/api/profile/**").authenticated()
 

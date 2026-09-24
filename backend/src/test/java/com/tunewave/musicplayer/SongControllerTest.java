@@ -156,7 +156,12 @@ public class SongControllerTest {
 
         List<SongDto> songs = objectMapper.readValue(listResult.getResponse().getContentAsString(), new TypeReference<>() {});
         SongDto song = songs.get(0);
-        long initialStreams = song.getStreamCount();
+
+        MvcResult songResult = mockMvc.perform(get("/api/songs/" + song.getId()))
+                .andExpect(status().isOk())
+                .andReturn();
+        SongDto freshSong = objectMapper.readValue(songResult.getResponse().getContentAsString(), SongDto.class);
+        long initialStreams = freshSong.getStreamCount();
 
         mockMvc.perform(post("/api/songs/" + song.getId() + "/stream"))
                 .andExpect(status().isOk())

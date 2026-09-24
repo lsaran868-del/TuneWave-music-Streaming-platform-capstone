@@ -71,7 +71,7 @@ public class SongService {
     }
 
     @Transactional
-    @CacheEvict(value = "songs", key = "#id")
+    @CacheEvict(value = "songs", allEntries = true)
     public SongDto incrementStreamCount(String id) {
         Song song = findSongEntityById(id);
         song.setStreamCount((song.getStreamCount() != null ? song.getStreamCount() : 0L) + 1);
