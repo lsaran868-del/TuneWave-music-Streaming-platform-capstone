@@ -30,14 +30,19 @@ public class Song {
 
     private Integer duration; // in seconds
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 1000)
     private String audioUrl;
 
+    @Column(length = 1000)
     private String coverUrl;
 
     private String genre;
 
     private String mood;
+
+    private String releaseDate;
+
+    private Boolean isExplicit = false;
 
     @Embedded
     private AudioFeatures features;
@@ -50,7 +55,7 @@ public class Song {
 
     public Song(String id, String title, Artist artist, String artistName, Album album, String albumTitle,
                 Integer duration, String audioUrl, String coverUrl, String genre, String mood,
-                AudioFeatures features, Long streamCount, LocalDateTime createdAt) {
+                String releaseDate, Boolean isExplicit, AudioFeatures features, Long streamCount, LocalDateTime createdAt) {
         this.id = id;
         this.title = title;
         this.artist = artist;
@@ -62,6 +67,8 @@ public class Song {
         this.coverUrl = coverUrl;
         this.genre = genre;
         this.mood = mood;
+        this.releaseDate = releaseDate;
+        this.isExplicit = isExplicit != null ? isExplicit : false;
         this.features = features;
         this.streamCount = streamCount != null ? streamCount : 0L;
         this.createdAt = createdAt != null ? createdAt : LocalDateTime.now();
@@ -83,6 +90,8 @@ public class Song {
         private String coverUrl;
         private String genre;
         private String mood;
+        private String releaseDate;
+        private Boolean isExplicit = false;
         private AudioFeatures features;
         private Long streamCount = 0L;
         private LocalDateTime createdAt = LocalDateTime.now();
@@ -98,12 +107,15 @@ public class Song {
         public Builder coverUrl(String coverUrl) { this.coverUrl = coverUrl; return this; }
         public Builder genre(String genre) { this.genre = genre; return this; }
         public Builder mood(String mood) { this.mood = mood; return this; }
+        public Builder releaseDate(String releaseDate) { this.releaseDate = releaseDate; return this; }
+        public Builder isExplicit(Boolean isExplicit) { this.isExplicit = isExplicit; return this; }
         public Builder features(AudioFeatures features) { this.features = features; return this; }
+        public Builder audioFeatures(AudioFeatures features) { this.features = features; return this; }
         public Builder streamCount(Long streamCount) { this.streamCount = streamCount; return this; }
         public Builder createdAt(LocalDateTime createdAt) { this.createdAt = createdAt; return this; }
 
         public Song build() {
-            return new Song(id, title, artist, artistName, album, albumTitle, duration, audioUrl, coverUrl, genre, mood, features, streamCount, createdAt);
+            return new Song(id, title, artist, artistName, album, albumTitle, duration, audioUrl, coverUrl, genre, mood, releaseDate, isExplicit, features, streamCount, createdAt);
         }
     }
 
@@ -154,8 +166,17 @@ public class Song {
     public String getMood() { return mood; }
     public void setMood(String mood) { this.mood = mood; }
 
+    public String getReleaseDate() { return releaseDate; }
+    public void setReleaseDate(String releaseDate) { this.releaseDate = releaseDate; }
+
+    public Boolean getIsExplicit() { return isExplicit; }
+    public void setIsExplicit(Boolean isExplicit) { this.isExplicit = isExplicit; }
+
     public AudioFeatures getFeatures() { return features; }
     public void setFeatures(AudioFeatures features) { this.features = features; }
+
+    public AudioFeatures getAudioFeatures() { return features; }
+    public void setAudioFeatures(AudioFeatures features) { this.features = features; }
 
     public Long getStreamCount() { return streamCount; }
     public void setStreamCount(Long streamCount) { this.streamCount = streamCount; }
