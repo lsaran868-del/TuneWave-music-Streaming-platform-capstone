@@ -11,6 +11,7 @@ export function AudioProvider({ children }) {
   const [queue, setQueue] = useState(INITIAL_SONGS);
   const [queueIndex, setQueueIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isLoadingSongs, setIsLoadingSongs] = useState(true);
   
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -29,6 +30,30 @@ export function AudioProvider({ children }) {
   const [isQueueOpen, setIsQueueOpen] = useState(false);
   const [isExpandedPlayerOpen, setIsExpandedPlayerOpen] = useState(false);
   const [isCreatePlaylistOpen, setIsCreatePlaylistOpen] = useState(false);
+
+  // Fetch real music catalog from backend on mount
+  useEffect(() => {
+    let isMounted = true;
+    api.getSongs()
+      .then(fetchedSongs => {
+        if (isMounted && fetchedSongs && fetchedSongs.length > 0) {
+          setSongs(fetchedSongs);
+          setCurrentTrack(prev => {
+            const exists = prev && fetchedSongs.some(s => s.id === prev.id);
+            return exists ? prev : fetchedSongs[0];
+          });
+          setQueue(fetchedSongs);
+        }
+      })
+      .catch(err => {
+        console.warn('Backend song catalog unreachable, continuing with local dataset:', err);
+      })
+      .finally(() => {
+        if (isMounted) setIsLoadingSongs(false);
+      });
+
+    return () => { isMounted = false; };
+  }, []);
 
   // Audio & Web Audio API Visualizer References
   const audioRef = useRef(new Audio());
@@ -121,6 +146,7 @@ export function AudioProvider({ children }) {
     };
     setListeningHistory(prev => [newEntry, ...prev.slice(0, 49)]); // keep last 50
     api.logPlayEvent(song.id, Math.round(currentTime));
+    api.incrementStream(song.id);
   };
 
   // Playback Control Handlers
