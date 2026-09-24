@@ -7,7 +7,7 @@ spring:
   application:
     name: tunewave-music-player
   
-  # Supabase PostgreSQL Connection
+  # Supabase PostgreSQL Connection (Configurable via Environment Variables)
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://aws-0-us-east-1.pooler.supabase.com:5432/postgres}
     username: ${SPRING_DATASOURCE_USERNAME:postgres.xyzcompany}
@@ -23,9 +23,9 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: false
+    open-in-view: false
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
 
   # Caffeine Backend Caching
@@ -34,10 +34,11 @@ spring:
     caffeine:
       spec: maximumSize=500,expireAfterAccess=600s
 
+# TuneWave Custom Settings
 tunewave:
   jwt:
-    secret: 9a6f8b12c4e5d67890a1b2c3d4e5f67890a1b2c3d4e5f67890a1b2c3d4e5f678
-    expiration-ms: 86400000 # 24 Hours
+    secret: ${TUNEWAVE_JWT_SECRET:9a6f8b12c4e5d67890a1b2c3d4e5f67890a1b2c3d4e5f67890a1b2c3d4e5f678}
+    expiration-ms: ${TUNEWAVE_JWT_EXPIRATION_MS:86400000} # 24 Hours
   
   supabase:
     url: ${SUPABASE_URL:https://xyzcompany.supabase.co}
