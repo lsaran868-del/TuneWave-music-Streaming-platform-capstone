@@ -1,10 +1,7 @@
 package com.tunewave.musicplayer.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,17 +12,22 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString(exclude = {"songs", "owner"})
+@EqualsAndHashCode(exclude = {"songs", "owner"})
 public class Playlist {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    @Column(nullable = false)
-    private String userId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User owner;
 
     @Column(nullable = false)
     private String title;
 
+    @Column(length = 1000)
     private String description;
 
     private String coverUrl;
@@ -33,14 +35,21 @@ public class Playlist {
     @Builder.Default
     private Boolean isPublic = true;
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "playlist_songs", joinColumns = @JoinColumn(name = "playlist_id"))
-    @Column(name = "song_id")
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "playlist_songs",
+        joinColumns = @JoinColumn(name = "playlist_id"),
+        inverseJoinColumns = @JoinColumn(name = "song_id")
+    )
     @Builder.Default
-    private List<String> songIds = new ArrayList<>();
+    private List<Song> songs = new ArrayList<>();
 
     private String createdBy;
 
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
+
+    public String getOwnerId() {
+        return owner != null ? owner.getId() : null;
+    }
 }

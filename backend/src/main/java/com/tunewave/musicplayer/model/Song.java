@@ -1,10 +1,7 @@
 package com.tunewave.musicplayer.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
@@ -16,15 +13,25 @@ import java.time.LocalDateTime;
 public class Song {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
     @Column(nullable = false)
     private String title;
 
-    @Column(nullable = false)
-    private String artist;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "artist_id")
+    private Artist artist;
 
-    private String album;
+    @Column(name = "artist_name")
+    private String artistName;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "album_id")
+    private Album album;
+
+    @Column(name = "album_title")
+    private String albumTitle;
 
     private Integer duration; // in seconds
 
@@ -45,4 +52,18 @@ public class Song {
 
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
+
+    public String getArtistDisplayName() {
+        if (artist != null && artist.getName() != null && !artist.getName().isBlank()) {
+            return artist.getName();
+        }
+        return artistName != null ? artistName : "Unknown Artist";
+    }
+
+    public String getAlbumDisplayTitle() {
+        if (album != null && album.getTitle() != null && !album.getTitle().isBlank()) {
+            return album.getTitle();
+        }
+        return albumTitle != null ? albumTitle : "Single";
+    }
 }
