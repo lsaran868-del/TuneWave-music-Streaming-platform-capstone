@@ -77,8 +77,13 @@ export default function SongCard({ song, queueContext = null }) {
         }}>
           {song.title}
         </div>
-        <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-          {song.artist}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+          {song.isExplicit && (
+            <span style={{ fontSize: '0.62rem', background: 'rgba(255,255,255,0.2)', padding: '0 3px', borderRadius: '2px', fontWeight: 800, color: '#fff' }}>E</span>
+          )}
+          <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {song.artist}
+          </div>
         </div>
       </div>
 
