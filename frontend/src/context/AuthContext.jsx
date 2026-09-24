@@ -1,74 +1,103 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { api } from '../services/api';
 
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem('tunewave_jwt_token'));
+  const [user, setUser] = useState(() => {
+    const savedUser = localStorage.getItem('tunewave_user');
+    const savedToken = localStorage.getItem('tunewave_jwt_token');
+    if (savedToken && savedUser) {
+      try {
+        return JSON.parse(savedUser);
+      } catch (e) {
+        return null;
+      }
+    }
+    return null;
+  });
+
+  const [token, setToken] = useState(() => localStorage.getItem('tunewave_jwt_token'));
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState('login'); // 'login' | 'register'
   const [isBackendConnected, setIsBackendConnected] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
+  // Check health and validate existing JWT token on startup
   useEffect(() => {
-    // Initialize default demo user if token exists or local storage session
-    const savedUser = localStorage.getItem('tunewave_user');
-    if (savedUser) {
-      try {
-        setUser(JSON.parse(savedUser));
-      } catch (e) {
-        setUser(defaultDemoUser);
+    let isMounted = true;
+
+    const checkSystemAndAuth = async () => {
+      // 1. Check live backend health
+      const isLive = await api.checkHealth();
+      if (isMounted) setIsBackendConnected(isLive);
+
+      // 2. Validate token with backend /api/auth/me if token exists
+      const storedToken = localStorage.getItem('tunewave_jwt_token');
+      if (storedToken) {
+        try {
+          const freshProfile = await api.getMe();
+          if (isMounted) {
+            setUser(freshProfile);
+            localStorage.setItem('tunewave_user', JSON.stringify(freshProfile));
+          }
+        } catch (err) {
+          console.warn('Session expired or invalid JWT token. Clearing credentials:', err.message);
+          if (isMounted) {
+            setToken(null);
+            setUser(null);
+            localStorage.removeItem('tunewave_jwt_token');
+            localStorage.removeItem('tunewave_user');
+          }
+        }
+      } else {
+        if (isMounted) {
+          setUser(null);
+        }
       }
-    } else {
-      setUser(defaultDemoUser);
-    }
 
-    // Ping backend to check live API connection status
-    fetch('/api/songs')
-      .then(res => setIsBackendConnected(res.ok))
-      .catch(() => setIsBackendConnected(false));
+      if (isMounted) setIsCheckingAuth(false);
+    };
+
+    checkSystemAndAuth();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
-
-  const defaultDemoUser = {
-    id: 'usr-demo',
-    email: 'alex.listener@tunewave.io',
-    username: 'Alex Vance',
-    avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
-    plan: 'Premium Pro',
-    totalHoursListened: 142.5,
-    topGenre: 'Synthwave'
-  };
 
   const login = async (email, password) => {
     const data = await api.login(email, password);
-    if (data.token) {
+    if (data && data.token) {
       setToken(data.token);
       localStorage.setItem('tunewave_jwt_token', data.token);
-      const userObj = data.user || defaultDemoUser;
-      setUser(userObj);
-      localStorage.setItem('tunewave_user', JSON.stringify(userObj));
+      setUser(data.user);
+      localStorage.setItem('tunewave_user', JSON.stringify(data.user));
       setIsAuthModalOpen(false);
+      return data;
     }
+    throw new Error('Invalid authentication response from server');
   };
 
   const register = async (email, password, username) => {
     const data = await api.register(email, password, username);
-    if (data.token) {
+    if (data && data.token) {
       setToken(data.token);
       localStorage.setItem('tunewave_jwt_token', data.token);
-      const userObj = data.user || { ...defaultDemoUser, email, username };
-      setUser(userObj);
-      localStorage.setItem('tunewave_user', JSON.stringify(userObj));
+      setUser(data.user);
+      localStorage.setItem('tunewave_user', JSON.stringify(data.user));
       setIsAuthModalOpen(false);
+      return data;
     }
+    throw new Error('Invalid registration response from server');
   };
 
-  const logout = () => {
+  const logout = useCallback(() => {
     setToken(null);
     setUser(null);
     localStorage.removeItem('tunewave_jwt_token');
     localStorage.removeItem('tunewave_user');
-  };
+  }, []);
 
   return (
     <AuthContext.Provider value={{
@@ -81,7 +110,8 @@ export function AuthProvider({ children }) {
       setIsAuthModalOpen,
       authMode,
       setAuthMode,
-      isBackendConnected
+      isBackendConnected,
+      isCheckingAuth
     }}>
       {children}
     </AuthContext.Provider>

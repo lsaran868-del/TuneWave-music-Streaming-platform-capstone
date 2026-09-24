@@ -1,9 +1,11 @@
 import { INITIAL_SONGS, INITIAL_PLAYLISTS } from '../data/initialSongs';
 
-const BASE_URL = '/api';
+// Base API URL configured via environment variable (VITE_API_BASE_URL)
+const RAW_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
+export const BASE_URL = RAW_BASE_URL.replace(/\/+$/, '');
 
-// Helper to get JWT token from localStorage
-const getAuthHeaders = () => {
+// Helper to get JWT token from localStorage with Bearer header
+export const getAuthHeaders = () => {
   const token = localStorage.getItem('tunewave_jwt_token');
   return {
     'Content-Type': 'application/json',
@@ -12,7 +14,7 @@ const getAuthHeaders = () => {
 };
 
 export const api = {
-  // Authentication
+  // Authentication - Real backend endpoints without fake/demo fallbacks
   login: async (email, password) => {
     try {
       const res = await fetch(`${BASE_URL}/auth/login`, {
@@ -20,14 +22,20 @@ export const api = {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
       });
-      if (!res.ok) throw new Error('Authentication failed');
-      return await res.json();
+
+      const data = await res.json().catch(() => null);
+
+      if (!res.ok) {
+        const errorMessage = data?.message || data?.error || `Authentication failed (HTTP ${res.status})`;
+        throw new Error(errorMessage);
+      }
+
+      return data;
     } catch (err) {
-      console.warn('Backend API offline. Using demo auth response.');
-      return {
-        token: 'demo-jwt-token-tunewave-2026',
-        user: { id: 'usr-1', email, username: email.split('@')[0] || 'Music Lover', avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80' }
-      };
+      if (err.message && (err.message.includes('Failed to fetch') || err.message.includes('NetworkError'))) {
+        throw new Error('TuneWave backend server is offline or unreachable. Please verify server is running on ' + BASE_URL);
+      }
+      throw err;
     }
   },
 
@@ -38,13 +46,44 @@ export const api = {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password, username })
       });
-      if (!res.ok) throw new Error('Registration failed');
-      return await res.json();
+
+      const data = await res.json().catch(() => null);
+
+      if (!res.ok) {
+        const errorMessage = data?.message || data?.error || `Registration failed (HTTP ${res.status})`;
+        throw new Error(errorMessage);
+      }
+
+      return data;
     } catch (err) {
-      return {
-        token: 'demo-jwt-token-tunewave-2026',
-        user: { id: `usr-${Date.now()}`, email, username, avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80' }
-      };
+      if (err.message && (err.message.includes('Failed to fetch') || err.message.includes('NetworkError'))) {
+        throw new Error('TuneWave backend server is offline or unreachable. Please verify server is running on ' + BASE_URL);
+      }
+      throw err;
+    }
+  },
+
+  getMe: async () => {
+    const res = await fetch(`${BASE_URL}/auth/me`, {
+      method: 'GET',
+      headers: getAuthHeaders()
+    });
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => null);
+      const errorMessage = data?.message || data?.error || `Failed to fetch authenticated user (HTTP ${res.status})`;
+      throw new Error(errorMessage);
+    }
+
+    return await res.json();
+  },
+
+  checkHealth: async () => {
+    try {
+      const res = await fetch(`${BASE_URL}/health`);
+      return res.ok;
+    } catch {
+      return false;
     }
   },
 
@@ -77,7 +116,7 @@ export const api = {
         body: JSON.stringify({ songId, playDurationSeconds: durationSeconds })
       });
     } catch (err) {
-      // Logged locally in AudioContext
+      // Logged locally in AudioContext if backend unauthenticated or offline
     }
   },
 
@@ -123,7 +162,7 @@ export const api = {
       if (!res.ok) throw new Error();
       return await res.json();
     } catch {
-      return null; // Fallback to client JS engine in AudioContext/AIDiscovery page
+      return null;
     }
   }
 };

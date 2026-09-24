@@ -4,10 +4,56 @@ import { useAuth } from '../context/AuthContext';
 import { useAudio } from '../context/AudioContext';
 
 export default function Profile() {
-  const { user, logout, isBackendConnected } = useAuth();
+  const { user, logout, isBackendConnected, setIsAuthModalOpen, setAuthMode } = useAuth();
   const { playlists, likedSongIds, listeningHistory } = useAudio();
 
-  if (!user) return null;
+  if (!user) {
+    return (
+      <div className="page-body animate-fade-in" style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '60vh',
+        gap: '1.5rem',
+        textAlign: 'center'
+      }}>
+        <div style={{
+          width: '80px',
+          height: '80px',
+          borderRadius: '50%',
+          background: 'rgba(29, 185, 84, 0.1)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          border: '1px solid rgba(29, 185, 84, 0.25)',
+          color: 'var(--primary)'
+        }}>
+          <User size={40} />
+        </div>
+        <h2 style={{ fontSize: '2rem', fontWeight: 800 }}>Welcome to TuneWave</h2>
+        <p style={{ color: 'var(--text-muted)', maxWidth: '420px', fontSize: '0.95rem', lineHeight: 1.6 }}>
+          Sign in or register to view your personal listening profile, customize your playlists, and sync your audio history.
+        </p>
+        <div style={{ display: 'flex', gap: '1rem' }}>
+          <button
+            onClick={() => { setAuthMode('login'); setIsAuthModalOpen(true); }}
+            className="btn-primary"
+            style={{ padding: '0.75rem 1.75rem', fontSize: '0.95rem' }}
+          >
+            <span>Sign In</span>
+          </button>
+          <button
+            onClick={() => { setAuthMode('register'); setIsAuthModalOpen(true); }}
+            className="btn-secondary"
+            style={{ padding: '0.75rem 1.75rem', fontSize: '0.95rem' }}
+          >
+            <span>Create Account</span>
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="page-body animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
