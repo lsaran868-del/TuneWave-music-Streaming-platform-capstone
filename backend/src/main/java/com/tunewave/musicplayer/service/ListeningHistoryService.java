@@ -5,7 +5,6 @@ import com.tunewave.musicplayer.model.ListeningHistory;
 import com.tunewave.musicplayer.model.Song;
 import com.tunewave.musicplayer.model.User;
 import com.tunewave.musicplayer.repository.ListeningHistoryRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,12 +13,17 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 public class ListeningHistoryService {
 
     private final ListeningHistoryRepository historyRepository;
     private final UserService userService;
     private final SongService songService;
+
+    public ListeningHistoryService(ListeningHistoryRepository historyRepository, UserService userService, SongService songService) {
+        this.historyRepository = historyRepository;
+        this.userService = userService;
+        this.songService = songService;
+    }
 
     @Transactional
     public ListeningHistoryDto recordPlayEvent(String userId, String songId, Integer durationSeconds) {

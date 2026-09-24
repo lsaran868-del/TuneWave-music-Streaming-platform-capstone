@@ -2,16 +2,8 @@ package com.tunewave.musicplayer.dto;
 
 import com.tunewave.musicplayer.model.AudioFeatures;
 import com.tunewave.musicplayer.model.Song;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
 public class SongDto {
     private String id;
     private String title;
@@ -27,6 +19,67 @@ public class SongDto {
     private AudioFeatures features;
     private Long streamCount;
     private LocalDateTime createdAt;
+
+    public SongDto() {}
+
+    public SongDto(String id, String title, String artist, String artistId, String album, String albumId,
+                   Integer duration, String audioUrl, String coverUrl, String genre, String mood,
+                   AudioFeatures features, Long streamCount, LocalDateTime createdAt) {
+        this.id = id;
+        this.title = title;
+        this.artist = artist;
+        this.artistId = artistId;
+        this.album = album;
+        this.albumId = albumId;
+        this.duration = duration;
+        this.audioUrl = audioUrl;
+        this.coverUrl = coverUrl;
+        this.genre = genre;
+        this.mood = mood;
+        this.features = features;
+        this.streamCount = streamCount;
+        this.createdAt = createdAt;
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static class Builder {
+        private String id;
+        private String title;
+        private String artist;
+        private String artistId;
+        private String album;
+        private String albumId;
+        private Integer duration;
+        private String audioUrl;
+        private String coverUrl;
+        private String genre;
+        private String mood;
+        private AudioFeatures features;
+        private Long streamCount;
+        private LocalDateTime createdAt;
+
+        public Builder id(String id) { this.id = id; return this; }
+        public Builder title(String title) { this.title = title; return this; }
+        public Builder artist(String artist) { this.artist = artist; return this; }
+        public Builder artistId(String artistId) { this.artistId = artistId; return this; }
+        public Builder album(String album) { this.album = album; return this; }
+        public Builder albumId(String albumId) { this.albumId = albumId; return this; }
+        public Builder duration(Integer duration) { this.duration = duration; return this; }
+        public Builder audioUrl(String audioUrl) { this.audioUrl = audioUrl; return this; }
+        public Builder coverUrl(String coverUrl) { this.coverUrl = coverUrl; return this; }
+        public Builder genre(String genre) { this.genre = genre; return this; }
+        public Builder mood(String mood) { this.mood = mood; return this; }
+        public Builder features(AudioFeatures features) { this.features = features; return this; }
+        public Builder streamCount(Long streamCount) { this.streamCount = streamCount; return this; }
+        public Builder createdAt(LocalDateTime createdAt) { this.createdAt = createdAt; return this; }
+
+        public SongDto build() {
+            return new SongDto(id, title, artist, artistId, album, albumId, duration, audioUrl, coverUrl, genre, mood, features, streamCount, createdAt);
+        }
+    }
 
     public static SongDto fromEntity(Song song) {
         if (song == null) return null;
@@ -47,4 +100,46 @@ public class SongDto {
                 .createdAt(song.getCreatedAt())
                 .build();
     }
+
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
+
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
+
+    public String getArtist() { return artist; }
+    public void setArtist(String artist) { this.artist = artist; }
+
+    public String getArtistId() { return artistId; }
+    public void setArtistId(String artistId) { this.artistId = artistId; }
+
+    public String getAlbum() { return album; }
+    public void setAlbum(String album) { this.album = album; }
+
+    public String getAlbumId() { return albumId; }
+    public void setAlbumId(String albumId) { this.albumId = albumId; }
+
+    public Integer getDuration() { return duration; }
+    public void setDuration(Integer duration) { this.duration = duration; }
+
+    public String getAudioUrl() { return audioUrl; }
+    public void setAudioUrl(String audioUrl) { this.audioUrl = audioUrl; }
+
+    public String getCoverUrl() { return coverUrl; }
+    public void setCoverUrl(String coverUrl) { this.coverUrl = coverUrl; }
+
+    public String getGenre() { return genre; }
+    public void setGenre(String genre) { this.genre = genre; }
+
+    public String getMood() { return mood; }
+    public void setMood(String mood) { this.mood = mood; }
+
+    public AudioFeatures getFeatures() { return features; }
+    public void setFeatures(AudioFeatures features) { this.features = features; }
+
+    public Long getStreamCount() { return streamCount; }
+    public void setStreamCount(Long streamCount) { this.streamCount = streamCount; }
+
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 }

@@ -7,7 +7,6 @@ import com.tunewave.musicplayer.model.Playlist;
 import com.tunewave.musicplayer.model.Song;
 import com.tunewave.musicplayer.model.User;
 import com.tunewave.musicplayer.repository.PlaylistRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,12 +15,17 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 public class PlaylistService {
 
     private final PlaylistRepository playlistRepository;
     private final UserService userService;
     private final SongService songService;
+
+    public PlaylistService(PlaylistRepository playlistRepository, UserService userService, SongService songService) {
+        this.playlistRepository = playlistRepository;
+        this.userService = userService;
+        this.songService = songService;
+    }
 
     @Transactional(readOnly = true)
     public List<PlaylistDto> getAllPublicPlaylists() {

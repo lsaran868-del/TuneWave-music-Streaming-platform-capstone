@@ -7,7 +7,6 @@ import com.tunewave.musicplayer.exception.ResourceNotFoundException;
 import com.tunewave.musicplayer.model.Song;
 import com.tunewave.musicplayer.model.User;
 import com.tunewave.musicplayer.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,11 +14,15 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 public class UserService {
 
     private final UserRepository userRepository;
     private final SongService songService;
+
+    public UserService(UserRepository userRepository, SongService songService) {
+        this.userRepository = userRepository;
+        this.songService = songService;
+    }
 
     @Transactional(readOnly = true)
     public UserProfileDto getUserProfile(String userId) {

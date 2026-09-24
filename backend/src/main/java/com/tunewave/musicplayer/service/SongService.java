@@ -4,7 +4,6 @@ import com.tunewave.musicplayer.dto.SongDto;
 import com.tunewave.musicplayer.exception.ResourceNotFoundException;
 import com.tunewave.musicplayer.model.Song;
 import com.tunewave.musicplayer.repository.SongRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -14,10 +13,13 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 public class SongService {
 
     private final SongRepository songRepository;
+
+    public SongService(SongRepository songRepository) {
+        this.songRepository = songRepository;
+    }
 
     @Transactional(readOnly = true)
     @Cacheable(value = "songs", key = "'all'")
